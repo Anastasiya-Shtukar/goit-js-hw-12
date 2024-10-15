@@ -1,0 +1,181 @@
+import iziToast from 'izitoast';
+import 'izitoast/dist/css/iziToast.min.css';
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
+import axios from 'axios';
+
+const btnSearch = document.querySelector('.btn-search');
+const searchImagesInput = document.querySelector('.search-images-input');
+const gallery = document.querySelector('.gallery');
+const searchImages = document.querySelector('.search-images');
+const btnLoadMore = document.querySelector('.btn-load-more');
+const btnLoadMoreDiv = document.getElementById('btn-load-more-div');
+
+btnSearch.addEventListener('click', event => {
+  event.preventDefault();
+  const inputImagesValue = searchImagesInput.value;
+  console.log(searchImagesInput.value);
+
+  searchImages.insertAdjacentHTML(
+    'afterend',
+    `<div class="loader-div" id="loader-div"><span class="loader"></span></div>`
+  );
+
+  const loader = document.getElementById('loader-div');
+
+  let pageMore = 1;
+
+  const searchParams = new URLSearchParams({
+    key: '46374353-2f98dff3c8dab99fd2b2fa1f1',
+    q: `'${inputImagesValue}'`,
+    image_type: 'photo',
+    orientation: 'horizontal',
+    safesearch: true,
+    per_page: 40,
+    page: `${pageMore}`,
+  });
+
+  console.log(searchParams.toString());
+
+  const url = `https://pixabay.com/api/?${searchParams}`;
+
+  const fetchImages = async () => {
+    const response = await axios.get(url);
+    return response.data;
+  };
+
+  const doStuff = async () => {
+    try {
+      const imagesApi = await fetchImages();
+      console.log(imagesApi);
+      if (imagesApi.hits.length === 0) {
+        throw new Error('No results found');
+      }
+
+      loader.style.display = 'none';
+
+      const galleryImages = imagesApi.hits
+        .map(
+          image => `<li class="gallery-item">
+  <a class="gallery-link" href="${image.largeImageURL}">
+    <img
+      class="gallery-image"
+      src="${image.webformatURL}"
+      data-source="${image.largeImageURL}"
+      alt="${image.tags}"
+    />
+  </a>
+  <div class="characteristics-photo">
+  <p class="characteristic">Likes:<span class="characteristic-span">${image.likes}</span></p>
+  <p class="characteristic">Views:<span class="characteristic-span">${image.views}</span></p>
+  <p class="characteristic">Comments:<span class="characteristic-span">${image.comments}</span></p>
+  <p class="characteristic">Downloads:<span class="characteristic-span">${image.downloads}</span></p>
+  </div>
+</li>`
+        )
+        .join('');
+
+      gallery.innerHTML = '';
+
+      gallery.insertAdjacentHTML('beforeend', galleryImages);
+
+      btnLoadMoreDiv.style.display = 'flex';
+
+      new SimpleLightbox('.gallery a', {
+        captionsData: 'alt',
+        captionDelay: 250,
+      });
+    } catch (error) {
+      console.error(error);
+      loader.style.display = 'none';
+      gallery.innerHTML = '';
+      iziToast.error({
+        title: '',
+        message:
+          'Sorry, there are no images matching your search query. Please try again!',
+        position: 'topCenter',
+      });
+    }
+  };
+  doStuff();
+
+  btnLoadMore.addEventListener('click', event => {
+    event.preventDefault();
+    pageMore = pageMore + 1;
+
+    const searchParams = new URLSearchParams({
+      key: '46374353-2f98dff3c8dab99fd2b2fa1f1',
+      q: `'${inputImagesValue}'`,
+      image_type: 'photo',
+      orientation: 'horizontal',
+      safesearch: true,
+      per_page: 40,
+      page: `${pageMore}`,
+    });
+
+    const url = `https://pixabay.com/api/?${searchParams}`;
+
+    const fetchImages = async () => {
+      const response = await axios.get(url);
+      return response.data;
+    };
+
+    const doStuffMore = async () => {
+      try {
+        const imagesApi = await fetchImages();
+        console.log(imagesApi);
+        if (imagesApi.hits.length === 0) {
+          throw new Error('No results found');
+        }
+
+        loader.style.display = 'none';
+
+        const galleryImages = imagesApi.hits
+          .map(
+            image => `<li class="gallery-item">
+  <a class="gallery-link" href="${image.largeImageURL}">
+    <img
+      class="gallery-image"
+      src="${image.webformatURL}"
+      data-source="${image.largeImageURL}"
+      alt="${image.tags}"
+    />
+  </a>
+  <div class="characteristics-photo">
+  <p class="characteristic">Likes:<span class="characteristic-span">${image.likes}</span></p>
+  <p class="characteristic">Views:<span class="characteristic-span">${image.views}</span></p>
+  <p class="characteristic">Comments:<span class="characteristic-span">${image.comments}</span></p>
+  <p class="characteristic">Downloads:<span class="characteristic-span">${image.downloads}</span></p>
+  </div>
+</li>`
+          )
+          .join('');
+
+        gallery.insertAdjacentHTML('beforeend', galleryImages);
+
+        btnLoadMoreDiv.style.display = 'flex';
+
+        new SimpleLightbox('.gallery a', {
+          captionsData: 'alt',
+          captionDelay: 250,
+        });
+      } catch (error) {
+        console.error(error);
+        loader.style.display = 'none';
+        gallery.innerHTML = '';
+        iziToast.error({
+          title: '',
+          message:
+            'Sorry, there are no images matching your search query. Please try again!',
+          position: 'topCenter',
+        });
+      }
+    };
+    doStuffMore();
+    btnSearch.addEventListener('click', () => {
+      pageMore = 1;
+      gallery.innerHTML = '';
+    });
+  });
+  searchImagesInput.textContent = '';
+});
