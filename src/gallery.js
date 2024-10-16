@@ -23,8 +23,6 @@ btnSearch.addEventListener('click', event => {
 
   const loader = document.getElementById('loader-div');
 
-  let pageMore = 1;
-
   const searchParams = new URLSearchParams({
     key: '46374353-2f98dff3c8dab99fd2b2fa1f1',
     q: `'${inputImagesValue}'`,
@@ -32,7 +30,7 @@ btnSearch.addEventListener('click', event => {
     orientation: 'horizontal',
     safesearch: true,
     per_page: 40,
-    page: `${pageMore}`,
+    page: 1,
   });
 
   console.log(searchParams.toString());
@@ -98,41 +96,55 @@ btnSearch.addEventListener('click', event => {
     }
   };
   doStuff();
+});
 
-  btnLoadMore.addEventListener('click', event => {
-    event.preventDefault();
-    pageMore = pageMore + 1;
+let pageMore = 1;
 
-    const searchParams = new URLSearchParams({
-      key: '46374353-2f98dff3c8dab99fd2b2fa1f1',
-      q: `'${inputImagesValue}'`,
-      image_type: 'photo',
-      orientation: 'horizontal',
-      safesearch: true,
-      per_page: 40,
-      page: `${pageMore}`,
-    });
+btnLoadMore.addEventListener('click', event => {
+  event.preventDefault();
+  const inputImagesValue = searchImagesInput.value;
 
-    const url = `https://pixabay.com/api/?${searchParams}`;
+  pageMore = pageMore + 1;
 
-    const fetchImages = async () => {
-      const response = await axios.get(url);
-      return response.data;
-    };
+  const searchParams = new URLSearchParams({
+    key: '46374353-2f98dff3c8dab99fd2b2fa1f1',
+    q: `'${inputImagesValue}'`,
+    image_type: 'photo',
+    orientation: 'horizontal',
+    safesearch: true,
+    per_page: 40,
+    page: `${pageMore}`,
+  });
 
-    const doStuffMore = async () => {
-      try {
-        const imagesApi = await fetchImages();
-        console.log(imagesApi);
-        if (imagesApi.hits.length === 0) {
-          throw new Error('No results found');
-        }
+  const url = `https://pixabay.com/api/?${searchParams}`;
 
-        loader.style.display = 'none';
+  const fetchImages = async () => {
+    const response = await axios.get(url);
+    return response.data;
+  };
 
-        const galleryImages = imagesApi.hits
-          .map(
-            image => `<li class="gallery-item">
+  const doStuffMore = async () => {
+    try {
+      const imagesApi = await fetchImages();
+      console.log(imagesApi);
+      if (imagesApi.hits.length === 0) {
+        throw new Error('No results found');
+      }
+
+      if (imagesApi.hits.length > imagesApi.totalHits) {
+        btnLoadMoreDiv.style.display = 'none';
+        iziToast.info({
+          title: '',
+          message: "We're sorry, but you've reached the end of search results.",
+        });
+      }
+
+      const loader = document.getElementById('loader-div');
+      loader.style.display = 'none';
+
+      const galleryImages = imagesApi.hits
+        .map(
+          image => `<li class="gallery-item">
   <a class="gallery-link" href="${image.largeImageURL}">
     <img
       class="gallery-image"
@@ -148,34 +160,30 @@ btnSearch.addEventListener('click', event => {
   <p class="characteristic">Downloads:<span class="characteristic-span">${image.downloads}</span></p>
   </div>
 </li>`
-          )
-          .join('');
+        )
+        .join('');
 
-        gallery.insertAdjacentHTML('beforeend', galleryImages);
+      gallery.insertAdjacentHTML('beforeend', galleryImages);
 
-        btnLoadMoreDiv.style.display = 'flex';
+      const galleryItem = document.querySelector('.gallery-item');
+      const rect = galleryItem.getBoundingClientRect();
 
-        new SimpleLightbox('.gallery a', {
-          captionsData: 'alt',
-          captionDelay: 250,
-        });
-      } catch (error) {
-        console.error(error);
-        loader.style.display = 'none';
-        gallery.innerHTML = '';
-        iziToast.error({
-          title: '',
-          message:
-            'Sorry, there are no images matching your search query. Please try again!',
-          position: 'topCenter',
-        });
-      }
-    };
-    doStuffMore();
-    btnSearch.addEventListener('click', () => {
-      pageMore = 1;
+      btnLoadMoreDiv.style.display = 'flex';
+
+      new SimpleLightbox('.gallery a', {
+        captionsData: 'alt',
+        captionDelay: 250,
+      });
+    } catch (error) {
+      console.error(error);
+      btnLoadMoreDiv.style.display = 'none';
       gallery.innerHTML = '';
-    });
-  });
-  searchImagesInput.textContent = '';
+      iziToast.info({
+        title: '',
+        message: "We're sorry, but you've reached the end of search results.",
+        position: 'topCenter',
+      });
+    }
+  };
+  doStuffMore();
 });
