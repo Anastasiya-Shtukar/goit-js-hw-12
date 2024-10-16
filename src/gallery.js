@@ -131,17 +131,17 @@ btnLoadMore.addEventListener('click', event => {
         throw new Error('No results found');
       }
 
-      if (imagesApi.hits.length > imagesApi.totalHits) {
+      if (pageMore * 40 >= imagesApi.totalHits) {
         btnLoadMoreDiv.style.display = 'none';
         iziToast.info({
           title: '',
           message: "We're sorry, but you've reached the end of search results.",
+          position: 'topCenter',
         });
       }
 
       const loader = document.getElementById('loader-div');
       loader.style.display = 'none';
-
       const galleryImages = imagesApi.hits
         .map(
           image => `<li class="gallery-item">
@@ -165,8 +165,14 @@ btnLoadMore.addEventListener('click', event => {
 
       gallery.insertAdjacentHTML('beforeend', galleryImages);
 
-      const galleryItem = document.querySelector('.gallery-item');
-      const rect = galleryItem.getBoundingClientRect();
+      const galleryItem = document
+        .querySelector('.gallery-item')
+        .getBoundingClientRect();
+      const { height: cardHeight } = galleryItem;
+      window.scrollBy({
+        top: cardHeight * 2,
+        behavior: 'smooth',
+      });
 
       btnLoadMoreDiv.style.display = 'flex';
 
@@ -176,8 +182,8 @@ btnLoadMore.addEventListener('click', event => {
       });
     } catch (error) {
       console.error(error);
+
       btnLoadMoreDiv.style.display = 'none';
-      gallery.innerHTML = '';
       iziToast.info({
         title: '',
         message: "We're sorry, but you've reached the end of search results.",
