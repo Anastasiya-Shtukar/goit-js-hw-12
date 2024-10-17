@@ -10,6 +10,8 @@ const gallery = document.querySelector('.gallery');
 const searchImages = document.querySelector('.search-images');
 const btnLoadMore = document.querySelector('.btn-load-more');
 const btnLoadMoreDiv = document.getElementById('btn-load-more-div');
+let galleryImages;
+let loader;
 
 btnSearch.addEventListener('click', event => {
   event.preventDefault();
@@ -21,7 +23,7 @@ btnSearch.addEventListener('click', event => {
     `<div class="loader-div" id="loader-div"><span class="loader"></span></div>`
   );
 
-  const loader = document.getElementById('loader-div');
+  loader = document.getElementById('loader-div');
 
   const searchParams = new URLSearchParams({
     key: '46374353-2f98dff3c8dab99fd2b2fa1f1',
@@ -52,7 +54,7 @@ btnSearch.addEventListener('click', event => {
 
       loader.style.display = 'none';
 
-      const galleryImages = imagesApi.hits
+      galleryImages = imagesApi.hits
         .map(
           image => `<li class="gallery-item">
   <a class="gallery-link" href="${image.largeImageURL}">
@@ -102,6 +104,13 @@ let pageMore = 1;
 
 btnLoadMore.addEventListener('click', event => {
   event.preventDefault();
+
+  gallery.insertAdjacentHTML(
+    'afterend',
+    `<div class="loader-div" id="loader-div-more"><span class="loader"></span></div>`
+  );
+  const loaderMore = document.getElementById('loader-div-more');
+
   const inputImagesValue = searchImagesInput.value;
 
   pageMore = pageMore + 1;
@@ -140,29 +149,6 @@ btnLoadMore.addEventListener('click', event => {
         });
       }
 
-      const loader = document.getElementById('loader-div');
-      loader.style.display = 'none';
-      const galleryImages = imagesApi.hits
-        .map(
-          image => `<li class="gallery-item">
-  <a class="gallery-link" href="${image.largeImageURL}">
-    <img
-      class="gallery-image"
-      src="${image.webformatURL}"
-      data-source="${image.largeImageURL}"
-      alt="${image.tags}"
-    />
-  </a>
-  <div class="characteristics-photo">
-  <p class="characteristic">Likes:<span class="characteristic-span">${image.likes}</span></p>
-  <p class="characteristic">Views:<span class="characteristic-span">${image.views}</span></p>
-  <p class="characteristic">Comments:<span class="characteristic-span">${image.comments}</span></p>
-  <p class="characteristic">Downloads:<span class="characteristic-span">${image.downloads}</span></p>
-  </div>
-</li>`
-        )
-        .join('');
-
       gallery.insertAdjacentHTML('beforeend', galleryImages);
 
       const galleryItem = document
@@ -173,6 +159,8 @@ btnLoadMore.addEventListener('click', event => {
         top: cardHeight * 2,
         behavior: 'smooth',
       });
+
+      loaderMore.style.display = 'none';
 
       btnLoadMoreDiv.style.display = 'flex';
 
