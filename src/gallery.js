@@ -10,7 +10,6 @@ const gallery = document.querySelector('.gallery');
 const searchImages = document.querySelector('.search-images');
 const btnLoadMore = document.querySelector('.btn-load-more');
 const btnLoadMoreDiv = document.getElementById('btn-load-more-div');
-let galleryImages;
 let loader;
 
 btnSearch.addEventListener('click', event => {
@@ -54,7 +53,7 @@ btnSearch.addEventListener('click', event => {
 
       loader.style.display = 'none';
 
-      galleryImages = imagesApi.hits
+      const galleryImages = imagesApi.hits
         .map(
           image => `<li class="gallery-item">
   <a class="gallery-link" href="${image.largeImageURL}">
@@ -148,6 +147,27 @@ btnLoadMore.addEventListener('click', event => {
           position: 'topCenter',
         });
       }
+
+      const galleryImages = imagesApi.hits
+        .map(
+          image => `<li class="gallery-item">
+  <a class="gallery-link" href="${image.largeImageURL}">
+    <img
+      class="gallery-image"
+      src="${image.webformatURL}"
+      data-source="${image.largeImageURL}"
+      alt="${image.tags}"
+    />
+  </a>
+  <div class="characteristics-photo">
+  <p class="characteristic">Likes:<span class="characteristic-span">${image.likes}</span></p>
+  <p class="characteristic">Views:<span class="characteristic-span">${image.views}</span></p>
+  <p class="characteristic">Comments:<span class="characteristic-span">${image.comments}</span></p>
+  <p class="characteristic">Downloads:<span class="characteristic-span">${image.downloads}</span></p>
+  </div>
+</li>`
+        )
+        .join('');
 
       gallery.insertAdjacentHTML('beforeend', galleryImages);
 
